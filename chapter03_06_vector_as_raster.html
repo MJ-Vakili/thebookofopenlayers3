@@ -29,7 +29,7 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-        <div class="container">        
+        <div class="container">
 
             <div class="header">
                 <h1><a href="index.html">The Book of OpenLayers3 <span class="text-muted">[Code samples]</span></a></h1>
@@ -68,11 +68,15 @@
                 </div>
             </div>
 
-            <h2>Basic map</h2>
+            <h2>Rendering vector as raster</h2>
 
-            <p>This sample shows how to create a very basic map with only one raster layer from the OpenStreetMap project.</p>
+            <p>Demonstrate the use of <code>ol.source.ImageVector</code> to render vector data as raster.</p>
+            <p>The map on the left is using a <code>ol.layer.Vector</code> layer loading content from a GeoJSON source. The map on the right uses a <code>ol.layer.Image</code> layer which loads vector data through the <code>ol.source.ImageVector</code> class to produce an image.</p>
 
-            <div id="map" class="map"></div>
+            <div class="row">
+                <div id="mapVector" class="map col-sm-6"></div>
+                <div id="mapImage" class="map col-sm-6"></div>
+            </div>
 
             <h4 class="text-muted">Source code:</h4>
             <pre><code id="code_text" class="javascript"></code></pre>
@@ -104,19 +108,50 @@
         </script>
 
         <script id="code">
-            var map = new ol.Map({
-                target: 'map',  // The DOM element that will contains the map
-                renderer: 'canvas', // Force the renderer to be used
-                layers: [
-                    // Add a new Tile layer getting tiles from OpenStreetMap source
-                    new ol.layer.Tile({
-                        source: new ol.source.OSM()
+            // Vector layer from GeoJSON source
+            var layerVector = new ol.layer.Vector({
+                source: new ol.source.GeoJSON({
+                    url: 'data/world_cities.json',
+                    projection: 'EPSG:3857'
+                })
+            });
+
+            // Image layer from a GeoJSON source using the ImageVector wrapper class.
+            var layerImage = new ol.layer.Image({
+                source: new ol.source.ImageVector({
+                    source: new ol.source.GeoJSON({
+                        url: 'data/world_cities.json',
+                        projection: 'EPSG:3857'
                     })
-                ],
+                }) 
+            });
+
+            // OSM tile layer
+            var layerOSM = new ol.layer.Tile({
+                source: new ol.source.OSM()
+            });
+
+            // Map showing vector layer
+            var map = new ol.Map({
+                target: 'mapVector',  // The DOM element that will contains the map
+                renderer: 'canvas', // Force the renderer to be used
+                layers: [layerOSM, layerVector],
                 // Create a view centered on the specified location and zoom level
                 view: new ol.View({
                     center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: 6
+                    zoom: 2
+                })
+            });
+
+            // Map showing raster vector layer
+            var map = new ol.Map({
+                target: 'mapImage',  // The DOM element that will contains the map
+                renderer: 'canvas', // Force the renderer to be used
+                layers: [layerOSM, layerImage],
+                // Create a view centered on the specified location and zoom level
+                view: new ol.View({
+                    center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
+                    zoom: 2
                 })
             });
         </script>

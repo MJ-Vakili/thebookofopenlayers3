@@ -68,9 +68,11 @@
                 </div>
             </div>
 
-            <h2>Basic map</h2>
+            <h2>Layer resolution</h2>
 
-            <p>This sample shows how to create a very basic map with only one raster layer from the OpenStreetMap project.</p>
+            <p>Here we show how we can force to show or hide a layer playing with its <code>minResolution</code> and <code>maxResolution</code> properties.</p>
+
+            <div style="margin-top: 5px;" class="alert alert-success">Open the browser console to see the view <code>resolution</code> when the zoom changes.</div>
 
             <div id="map" class="map"></div>
 
@@ -104,13 +106,20 @@
         </script>
 
         <script id="code">
-            var map = new ol.Map({
+            var map = new ol.Map({ 
                 target: 'map',  // The DOM element that will contains the map
                 renderer: 'canvas', // Force the renderer to be used
                 layers: [
-                    // Add a new Tile layer getting tiles from OpenStreetMap source
+                    // Add to tile layers specifying its min and max resolution property
                     new ol.layer.Tile({
-                        source: new ol.source.OSM()
+                        source: new ol.source.MapQuest({
+                            layer: 'sat'
+                        }),
+                        minResolution: 2500,
+                    }),
+                    new ol.layer.Tile({
+                        source: new ol.source.OSM(),
+                        maxResolution: 2500
                     })
                 ],
                 // Create a view centered on the specified location and zoom level
@@ -118,6 +127,11 @@
                     center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
                     zoom: 6
                 })
+            });
+
+            var view = map.getView();
+            view.on('change:resolution', function(evt) {
+                console.log("resolution", view.getResolution());
             });
         </script>
 

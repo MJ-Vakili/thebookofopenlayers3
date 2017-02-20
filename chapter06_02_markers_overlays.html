@@ -23,6 +23,104 @@
 
         <!-- OpenLayers -->
         <link rel="stylesheet" href="//openlayers.org/en/v3.4.0/css/ol.css" type="text/css">
+        <style>
+            /* CSS code icons from http://codepen.io/jthiller/pen/icDtL */
+            .circleOut {
+              position: relative;
+              margin: 0 auto;
+              padding: 0;
+              width: 0;
+              height: 0;
+            }
+            .circleOut:before {
+              position: relative;
+              top: -.8em;
+              left: -1em;
+              display: block;
+              -moz-box-sizing: border-box;
+                   box-sizing: border-box;
+              margin: 0 auto;
+              width: 2em;
+              height: 2em;
+              border: 0.5em solid #FA8258;              
+              border-radius: 100%;
+              content: "";
+              -webkit-transform-origin: center;
+                  -ms-transform-origin: center;
+                      transform-origin: center;
+              -webkit-animation-name: fadeOut;
+                      animation-name: fadeOut;
+              -webkit-animation-duration: 1s;
+                      animation-duration: 1s;
+              -webkit-animation-timing-function: ease-in-out;
+                      animation-timing-function: ease-in-out;
+              -webkit-animation-delay: -1s;
+                      animation-delay: -1s;
+              -webkit-animation-iteration-count: infinite;
+                      animation-iteration-count: infinite;
+              -webkit-animation-direction: forwards;
+                      animation-direction: forwards;
+            }
+            .circleOut:after {
+              position: absolute;
+              top: -.8em;
+              left: -1em;
+              display: block;
+              -moz-box-sizing: border-box;
+                   box-sizing: border-box;
+              margin: 0 auto;
+              width: 2em;
+              height: 2em;
+              border: 0.2em solid #FA8258;
+              border-radius: 100%;
+              content: "";
+              -webkit-transform-origin: center;
+                  -ms-transform-origin: center;
+                      transform-origin: center;
+              -webkit-animation-name: fadeOut;
+                      animation-name: fadeOut;
+              -webkit-animation-duration: 1s;
+                      animation-duration: 1s;
+              -webkit-animation-timing-function: ease;
+                      animation-timing-function: ease;
+              -webkit-animation-delay: -.5s;
+                      animation-delay: -.5s;
+              -webkit-animation-iteration-count: infinite;
+                      animation-iteration-count: infinite;
+              -webkit-animation-direction: forwards;
+                      animation-direction: forwards;
+            }
+
+            @-webkit-keyframes fadeOut {
+              0% {
+                -webkit-transform: scale(0);
+                        transform: scale(0);
+              }
+              50% {
+                opacity: 1;
+              }
+              100% {
+                -webkit-transform: scale(1);
+                        transform: scale(1);
+                opacity: 0;
+              }
+            }
+
+            @keyframes fadeOut {
+              0% {
+                -webkit-transform: scale(0);
+                        transform: scale(0);
+              }
+              50% {
+                opacity: 1;
+              }
+              100% {
+                -webkit-transform: scale(1);
+                        transform: scale(1);
+                opacity: 0;
+              }
+            }
+        </style>
     </head>
     <body>
         <!--[if lt IE 10]>
@@ -67,10 +165,12 @@
                     New 3.5.0 version introduces some <a href="https://github.com/openlayers/ol3/blob/master/changelog/upgrade-notes.md#v350">API changes</a> not backwards compatible.
                 </div>
             </div>
+ 
+            <h2>Using overlays as markers</h2>
 
-            <h2>Basic map</h2>
+            <p>Shows how we can use overlays to implement markers. Because overlays are HTML element we can create graceful icons using CSS or SVG.</p>
 
-            <p>This sample shows how to create a very basic map with only one raster layer from the OpenStreetMap project.</p>
+            <div style="margin-top: 5px;" class="alert alert-warning">Note, this examples requires a CSS3 compatible browser.</div>
 
             <div id="map" class="map"></div>
 
@@ -104,21 +204,48 @@
         </script>
 
         <script id="code">
+            // Creates an overlays in the given coordinates
+            function createCircleOutOverlay(position) {
+                var elem = document.createElement('div');
+                elem.setAttribute('class', 'circleOut');
+
+                return new ol.Overlay({
+                    element: elem,
+                    position: position,
+                    positioning: 'center-center'
+                });
+            }
+
             var map = new ol.Map({
-                target: 'map',  // The DOM element that will contains the map
-                renderer: 'canvas', // Force the renderer to be used
+                target: 'map',
+                renderer: 'canvas',
                 layers: [
-                    // Add a new Tile layer getting tiles from OpenStreetMap source
                     new ol.layer.Tile({
-                        source: new ol.source.OSM()
+                        source: new ol.source.MapQuest({
+                            layer: 'osm'
+                        })
                     })
                 ],
-                // Create a view centered on the specified location and zoom level
                 view: new ol.View({
-                    center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: 6
+                    center: [0, 0],
+                    zoom: 2
                 })
             });
+
+            // Read data file
+            $.get('./data/2012_Earthquakes_Mag5.kml')
+                .done(function(response){
+                    var format = new ol.format.KML();
+                    var features = format.readFeatures(response, {
+                      featureProjection: 'EPSG:3857'
+                    });
+                    var coordinates, overlay;
+                    for (var i = 0; i < features.length; i+=15) {
+                        coordinates = features[i].getGeometry().getCoordinates();
+                        overlay = createCircleOutOverlay(coordinates);
+                        map.addOverlay(overlay);
+                    };
+                });
         </script>
 
         <script>

@@ -23,6 +23,19 @@
 
         <!-- OpenLayers -->
         <link rel="stylesheet" href="//openlayers.org/en/v3.4.0/css/ol.css" type="text/css">
+        <style>
+            .overlay {
+                background-color: #fff;
+                border: 2px #bbb solid;
+                border-radius: 7px;
+                border-top-right-radius: 0px;
+                -webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+                -moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+                box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+                padding: 10px;
+                display: none;
+            }
+        </style>
     </head>
     <body>
         <!--[if lt IE 10]>
@@ -67,11 +80,12 @@
                     New 3.5.0 version introduces some <a href="https://github.com/openlayers/ol3/blob/master/changelog/upgrade-notes.md#v350">API changes</a> not backwards compatible.
                 </div>
             </div>
+ 
+            <h2>Basic overlay</h2>
 
-            <h2>Basic map</h2>
+            <p>Demonstrates how to create a basic overlay from a HTML element. Click on the map to show/move the overlay that shows the clicked coordinates.</p>
 
-            <p>This sample shows how to create a very basic map with only one raster layer from the OpenStreetMap project.</p>
-
+            <input id="stopEvent" type="checkbox" checked> stopEvent <input id="insertFirst" type="checkbox"> insertFirst
             <div id="map" class="map"></div>
 
             <h4 class="text-muted">Source code:</h4>
@@ -104,21 +118,60 @@
         </script>
 
         <script id="code">
+            function createOverlay(stopEvent, insertFirst) {
+                return new ol.Overlay({
+                    element: $('<div id="myOverlay" class="overlay">I\'m an overlay placed at: <span id="coordinate" class="label label-primary">0, 0</span></div> '),
+                    positioning: 'top-right',
+                    stopEvent: stopEvent,
+                    insertFirst: insertFirst
+                });
+            }
+
+            function setCoordinateAndShow(coordinate) {
+                // Set position
+                overlay.setPosition(coordinate);
+                // Update overlay label
+                $('#coordinate').text(ol.coordinate.toStringXY(ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326'), 2));
+                // Show overlay
+                $(overlay.getElement()).show(); 
+            }
+
             var map = new ol.Map({
-                target: 'map',  // The DOM element that will contains the map
-                renderer: 'canvas', // Force the renderer to be used
+                target: 'map',
+                renderer: 'canvas',
                 layers: [
-                    // Add a new Tile layer getting tiles from OpenStreetMap source
                     new ol.layer.Tile({
-                        source: new ol.source.OSM()
+                        source: new ol.source.MapQuest({
+                            layer: 'osm'
+                        })
                     })
                 ],
-                // Create a view centered on the specified location and zoom level
                 view: new ol.View({
                     center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: 6
+                    zoom: 8
                 })
             });
+
+            var overlay = createOverlay(true, false);
+            map.addOverlay(overlay);
+
+            map.on('click', function(event) {
+                var coordinate = event.coordinate;
+                setCoordinateAndShow(coordinate);
+            });
+
+            $('#stopEvent, #insertFirst').on('click', function(){
+                var stopEvent = $('#stopEvent').is(':checked');
+                var insertFirst = $('#insertFirst').is(':checked');
+
+                var prevPos = overlay.getPosition();
+                map.removeOverlay(overlay);
+                overlay = createOverlay(stopEvent, insertFirst);
+                map.addOverlay(overlay);
+
+                setCoordinateAndShow(prevPos);
+            });
+
         </script>
 
         <script>

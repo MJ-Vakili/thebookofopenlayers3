@@ -68,10 +68,13 @@
                 </div>
             </div>
 
-            <h2>Basic map</h2>
+            <h2>Listening for changes on vector data</h2>
 
-            <p>This sample shows how to create a very basic map with only one raster layer from the OpenStreetMap project.</p>
+            <p>Use the <code>change</code> event to know when data is loaded by a source and ready to be used.</p>
 
+            <p>
+                Features <span id="features" class="label label-primary">0</span>
+            </p>
             <div id="map" class="map"></div>
 
             <h4 class="text-muted">Source code:</h4>
@@ -104,19 +107,38 @@
         </script>
 
         <script id="code">
+            // Vector layer
+            var layerVector = new ol.layer.Heatmap({
+                source: new ol.source.GeoJSON({
+                    url: 'data/world_cities.json',
+                    projection: 'EPSG:3857'
+                })
+            });
+
+            console.log("Source state before reading: ", layerVector.getSource().getState());
+
+            // Listen for changes
+            layerVector.getSource().on('change', function(event) {
+                console.log("Source state once data is loaded: ", layerVector.getSource().getState());
+
+                $('#features').text(layerVector.getSource().getFeatures().length);
+            });
+ 
+            // Map
             var map = new ol.Map({
-                target: 'map',  // The DOM element that will contains the map
-                renderer: 'canvas', // Force the renderer to be used
+                target: 'map',
+                renderer: 'canvas',
                 layers: [
-                    // Add a new Tile layer getting tiles from OpenStreetMap source
                     new ol.layer.Tile({
-                        source: new ol.source.OSM()
-                    })
+                        source: new ol.source.MapQuest({
+                            layer: 'osm'
+                        })
+                    }), 
+                    layerVector
                 ],
-                // Create a view centered on the specified location and zoom level
                 view: new ol.View({
                     center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: 6
+                    zoom: 4
                 })
             });
         </script>

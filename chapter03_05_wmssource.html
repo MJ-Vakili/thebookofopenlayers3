@@ -68,11 +68,14 @@
                 </div>
             </div>
 
-            <h2>Basic map</h2>
+            <h2>Loading data from a WMS server </h2>
 
-            <p>This sample shows how to create a very basic map with only one raster layer from the OpenStreetMap project.</p>
+            <p>This sample demonstrates how we can request raster data on a WMS server. The map on the left request data as a <em>single image</em> for the whole view extent. The map on the right works as a pyramid of tiles.</p>
 
-            <div id="map" class="map"></div>
+            <div class="row">
+                <div id="mapImage" class="map col-sm-6"></div>
+                <div id="mapTiles" class="map col-sm-6"></div>
+            </div>
 
             <h4 class="text-muted">Source code:</h4>
             <pre><code id="code_text" class="javascript"></code></pre>
@@ -104,13 +107,46 @@
         </script>
 
         <script id="code">
-            var map = new ol.Map({
-                target: 'map',  // The DOM element that will contains the map
+            var mapImage = new ol.Map({
+                target: 'mapImage',  // The DOM element that will contains the map
                 renderer: 'canvas', // Force the renderer to be used
                 layers: [
-                    // Add a new Tile layer getting tiles from OpenStreetMap source
                     new ol.layer.Tile({
                         source: new ol.source.OSM()
+                    }),
+                    new ol.layer.Image({
+                        source: new ol.source.ImageWMS({
+                            url: 'http://www.idee.es/wms/MTN-Raster/MTN-Raster',
+                            ratio: 1,
+                            params: {
+                                'LAYERS': 'mtn_rasterizado',
+                                'TRANSPARENT': 'true'
+                            }
+                        })
+                    })
+                ],
+                // Create a view centered on the specified location and zoom level
+                view: new ol.View({
+                    center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
+                    zoom: 6
+                })
+            });
+
+            var mapTiles = new ol.Map({
+                target: 'mapTiles',  // The DOM element that will contains the map
+                renderer: 'canvas', // Force the renderer to be used
+                layers: [
+                    new ol.layer.Tile({
+                        source: new ol.source.OSM()
+                    }),
+                    new ol.layer.Tile({
+                        source: new ol.source.TileWMS({
+                            url: 'http://www.idee.es/wms/MTN-Raster/MTN-Raster',
+                            params: {
+                                'LAYERS': 'mtn_rasterizado',
+                                'TRANSPARENT': 'true'
+                            }
+                        })
                     })
                 ],
                 // Create a view centered on the specified location and zoom level

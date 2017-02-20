@@ -23,6 +23,12 @@
 
         <!-- OpenLayers -->
         <link rel="stylesheet" href="//openlayers.org/en/v3.4.0/css/ol.css" type="text/css">
+
+        <style>
+            #result {
+                max-height: 400px;
+            }
+        </style>
     </head>
     <body>
         <!--[if lt IE 10]>
@@ -68,11 +74,13 @@
                 </div>
             </div>
 
-            <h2>Basic map</h2>
+            <h2>Reading WMS capabilities</h2>
 
-            <p>This sample shows how to create a very basic map with only one raster layer from the OpenStreetMap project.</p>
+            <p>This sample shows how we can read the capabilities of a WMS server.</p>
 
-            <div id="map" class="map"></div>
+            <div style="margin-top: 5px;" class="alert alert-success">Open the browser console to see the JavaScript object with output from the WMS server capabilities. Note we read the capabilities from a local copy of a WMS server capabilities to avoid cross domain problems.</div>
+
+            <pre><code id="result" class="json"></code></pre>
 
             <h4 class="text-muted">Source code:</h4>
             <pre><code id="code_text" class="javascript"></code></pre>
@@ -104,20 +112,15 @@
         </script>
 
         <script id="code">
-            var map = new ol.Map({
-                target: 'map',  // The DOM element that will contains the map
-                renderer: 'canvas', // Force the renderer to be used
-                layers: [
-                    // Add a new Tile layer getting tiles from OpenStreetMap source
-                    new ol.layer.Tile({
-                        source: new ol.source.OSM()
-                    })
-                ],
-                // Create a view centered on the specified location and zoom level
-                view: new ol.View({
-                    center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: 6
-                })
+            // Load capabilties file using jQuery and parse using 
+            // the ol.format.WMSCapabilities format class.
+            $.get('data/MTN-Raster.xml')
+            .done(function(data) {
+                var capabilities = new ol.format.WMSCapabilities();
+                var result = capabilities.read(data);
+                console.log(result); 
+
+                $('#result').text( JSON.stringify(result) );
             });
         </script>
 

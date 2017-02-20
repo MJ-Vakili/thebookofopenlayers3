@@ -68,9 +68,9 @@
                 </div>
             </div>
 
-            <h2>Basic map</h2>
+            <h2>Heatmap layer</h2>
 
-            <p>This sample shows how to create a very basic map with only one raster layer from the OpenStreetMap project.</p>
+            <p>Sample using a heatmap layer.</p>
 
             <div id="map" class="map"></div>
 
@@ -104,19 +104,29 @@
         </script>
 
         <script id="code">
+            // Create a heatmap layer based on GeoJSON content
+            var heatmapLayer = new ol.layer.Heatmap({
+                source: new ol.source.GeoJSON({
+                    url: './data/world_cities.json',
+                    projection: 'EPSG:3857'
+                }),
+                opacity: 0.9
+            });
+
+            // Create a tile layer from OSM
+            var osmLayer = new ol.layer.Tile({
+                source: new ol.source.OSM()
+            });
+
+            // Create the map with the previous layers
             var map = new ol.Map({
                 target: 'map',  // The DOM element that will contains the map
                 renderer: 'canvas', // Force the renderer to be used
-                layers: [
-                    // Add a new Tile layer getting tiles from OpenStreetMap source
-                    new ol.layer.Tile({
-                        source: new ol.source.OSM()
-                    })
-                ],
+                layers: [osmLayer, heatmapLayer],
                 // Create a view centered on the specified location and zoom level
                 view: new ol.View({
                     center: ol.proj.transform([2.1833, 41.3833], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: 6
+                    zoom: 4
                 })
             });
         </script>
